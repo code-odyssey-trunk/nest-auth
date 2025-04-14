@@ -16,10 +16,6 @@ export class AuthService {
   ) {}
 
   async login(user: User, response: Response) {
-    const tokenPayload: TokenPayload = {
-      userId: user._id.toHexString(),
-    };
-
     const expiresAccessToken = new Date();
     expiresAccessToken.setMilliseconds(
       expiresAccessToken.getTime() +
@@ -29,6 +25,23 @@ export class AuthService {
           ),
         ),
     );
+
+    const tokenPayload: TokenPayload = {
+      userId: user._id.toHexString(),
+    };
+
+    const accessToken = this.jwtService.sign(tokenPayload, {
+      secret: this.configService.getOrThrow('JWT_ACCESS_TOKEN_SECRET'),
+      expiresIn: `${this.configService.getOrThrow(
+        'JWT_ACCESS_TOKEN_EXPIRATION_MS',
+      )}`,
+    });
+
+    response.cookie('Authentication', accessToken, {
+      httpOnly: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
+      expires: expiresAccessToken,
+    });
   }
 
   async verifyUser(email: string, password: string) {
