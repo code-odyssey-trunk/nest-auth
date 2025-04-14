@@ -25,4 +25,8 @@ export class UsersService {
     }
     return user;
   }
+
+  async getUsers() {
+    return this.userModel.find({});
+  }
 }
